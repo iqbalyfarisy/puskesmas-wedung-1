@@ -1,0 +1,91 @@
+backend:
+  name: turbo-github
+  turbo_site_id: GANTI_DENGAN_TURBO_SITE_ID
+  branch: main
+
+publish_mode: editorial_workflow
+media_folder: "assets/uploads"
+public_folder: "/assets/uploads"
+locale: "id"
+
+slug:
+  encoding: "ascii"
+  clean_accents: true
+  sanitize_replacement: "-"
+
+collections:
+  - name: "publikasi"
+    label: "Publikasi Website"
+    files:
+      - name: "konten-website"
+        label: "Berita, Program, Pengumuman, Edukasi, dan Layanan"
+        file: "data/content.json"
+        format: "json"
+        fields:
+          - label: "Program dan Kegiatan"
+            name: "programs"
+            widget: "list"
+            required: false
+            fields:
+              - { label: "Judul", name: "title", widget: "string" }
+              - { label: "Slug URL", name: "slug", widget: "string" }
+              - { label: "Kategori", name: "category", widget: "string" }
+              - { label: "Tanggal", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "DD MMMM YYYY", time_format: false }
+              - { label: "Ringkasan", name: "summary", widget: "text" }
+              - { label: "Isi lengkap", name: "body", widget: "text", required: false }
+              - { label: "Foto utama", name: "featured_image", widget: "image", required: false }
+              - { label: "Tautan sumber resmi", name: "source_url", widget: "string", required: false }
+              - { label: "Tampilkan di website", name: "published", widget: "boolean", default: false }
+          - label: "Pengumuman"
+            name: "announcements"
+            widget: "list"
+            required: false
+            fields:
+              - { label: "Judul", name: "title", widget: "string" }
+              - { label: "Slug URL", name: "slug", widget: "string" }
+              - { label: "Kategori", name: "category", widget: "select", options: ["Pengumuman", "Informasi Layanan", "Informasi Publik"] }
+              - { label: "Tanggal", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "DD MMMM YYYY", time_format: false }
+              - { label: "Ringkasan", name: "summary", widget: "text" }
+              - { label: "Isi lengkap", name: "body", widget: "text", required: false }
+              - { label: "Tampilkan di website", name: "published", widget: "boolean", default: false }
+          - label: "Berita"
+            name: "articles"
+            widget: "list"
+            required: false
+            fields:
+              - { label: "Judul", name: "title", widget: "string" }
+              - { label: "Slug URL", name: "slug", widget: "string" }
+              - { label: "Kategori", name: "category", widget: "string" }
+              - { label: "Tanggal", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "DD MMMM YYYY", time_format: false }
+              - { label: "Ringkasan", name: "summary", widget: "text" }
+              - { label: "Isi lengkap", name: "body", widget: "text" }
+              - { label: "Foto utama", name: "featured_image", widget: "image", required: false }
+              - { label: "Tampilkan di website", name: "published", widget: "boolean", default: false }
+          - label: "Detail Pelayanan"
+            name: "services"
+            widget: "list"
+            required: false
+            fields:
+              - { label: "Nama layanan", name: "name", widget: "string" }
+              - { label: "Slug URL", name: "slug", widget: "string" }
+              - { label: "Kategori", name: "category", widget: "string" }
+              - { label: "Ringkasan", name: "summary", widget: "text" }
+              - { label: "Deskripsi lengkap", name: "description", widget: "text" }
+              - { label: "Persyaratan", name: "requirements", widget: "list", required: false, field: { label: "Persyaratan", name: "item", widget: "string" } }
+              - { label: "Jadwal pelayanan", name: "schedule", widget: "text", required: false }
+              - { label: "Unit pelayanan", name: "unit", widget: "string", required: false }
+              - { label: "Informasi tambahan", name: "notes", widget: "text", required: false }
+              - { label: "Tampilkan di website", name: "published", widget: "boolean", default: false }
+          - label: "Artikel dan Edukasi Kesehatan"
+            name: "education"
+            widget: "list"
+            required: false
+            fields:
+              - { label: "Judul", name: "title", widget: "string" }
+              - { label: "Slug URL", name: "slug", widget: "string" }
+              - { label: "Kategori", name: "category", widget: "string" }
+              - { label: "Tanggal", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "DD MMMM YYYY", time_format: false }
+              - { label: "Ringkasan", name: "summary", widget: "text" }
+              - { label: "Isi lengkap", name: "body", widget: "text" }
+              - { label: "Foto utama", name: "featured_image", widget: "image", required: false }
+              - { label: "Tampilkan di website", name: "published", widget: "boolean", default: false }

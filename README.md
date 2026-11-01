@@ -1,19 +1,37 @@
-# Website Puskesmas Wedung I — Kabupaten Demak
+# Puskesmas Wedung I — Website
 
-Website profil dan pusat informasi pelayanan kesehatan Puskesmas Wedung I.
+Website profil dan pusat informasi pelayanan kesehatan Puskesmas Wedung I, Kabupaten Demak.
 
-## Deployment
-Situs statis diterbitkan ke GitHub Pages melalui GitHub Actions. Berkas awal website disimpan sebagai paket sumber, lalu workflow menyiapkan direktori publikasi dan menyalin file konten CMS ke lokasi yang sesuai.
+## Struktur repository
+
+- `site-source-v2.zip` — paket website statis. Unggah paket dari lampiran percakapan ke root repository dengan nama persis ini.
+- `admin/config.yml` — konfigurasi Decap CMS (Decap Turbo + GitHub).
+- `data/content.json` — data publikasi yang dikelola CMS.
+- `assets/uploads/` — media yang diunggah melalui CMS.
+- `.github/workflows/deploy-cpanel.yml` — deployment otomatis ke cPanel melalui SSH/SCP.
+
+## Deployment cPanel
+
+Setelah `site-source-v2.zip` diunggah dan GitHub Actions secrets dibuat, setiap perubahan pada paket situs, konfigurasi CMS, data konten, atau upload media di branch `main` akan memicu deployment ke direktori hosting.
+
+Lihat [CPANEL-DEPLOYMENT.md](CPANEL-DEPLOYMENT.md) untuk langkah pengaturan SSH dan daftar secrets.
 
 ## CMS
-Dashboard berada di `/admin/` dan menggunakan Decap CMS dengan backend Decap Turbo + GitHub. Sebelum CMS dapat digunakan:
-1. Install Decap Turbo GitHub App pada repository ini.
-2. Buat Site di Decap Turbo untuk repository `iqbalyfarisy/puskesmas-wedung-1`, branch `main`.
-3. Tambahkan URL admin `https://iqbalyfarisy.github.io/puskesmas-wedung-1/admin/`.
-4. Salin Site ID ke `admin/config.yml`.
-5. Undang petugas editor dari dashboard Decap Turbo.
 
-## Catatan
-Jangan menerbitkan data pasien, rekam medis, NIK, nomor BPJS, atau informasi kesehatan pribadi. Kontak, jam layanan, visi-misi, daftar layanan aktif, struktur organisasi, statistik, dan logo instansi induk harus divalidasi oleh Puskesmas sebelum publikasi.
+Dashboard situs berada di `/admin/` dan memakai Decap CMS dengan backend Decap Turbo + GitHub. Untuk mengaktifkannya:
+1. Buat organisasi dan hubungkan GitHub di Decap Turbo.
+2. Install Decap Turbo GitHub App pada akun pemilik repository dan izinkan repository ini.
+3. Buat Site untuk repo `iqbalyfarisy/puskesmas-wedung-1`, branch `main`, config path `admin/config.yml`, dan admin URL domain yang digunakan.
+4. Ganti `GANTI_DENGAN_TURBO_SITE_ID` di `admin/config.yml` dengan Site ID pada tab Overview.
+5. Undang petugas yang berwenang sebagai editor.
 
-Logo Puskesmas pada versi ini merupakan konsep visual yang disetujui untuk pengembangan dan masih memerlukan pengesahan instansi.
+Dokumentasi resmi:
+- https://decapcms.org/docs/turbo-getting-started/
+- https://decapcms.org/docs/turbo-connecting-a-site/
+
+## Catatan publikasi
+
+- Validasi telepon, email, jam layanan, visi-misi, daftar layanan aktif, struktur organisasi, statistik, dan foto sebelum pengumuman publik.
+- Logo Puskesmas yang disertakan adalah konsep visual untuk pengembangan dan masih perlu pengesahan instansi.
+- Jangan mempublikasikan rekam medis, data pasien, NIK, nomor BPJS, atau informasi kesehatan pribadi.
+- Jangan menyimpan password, private key, atau kredensial hosting di repository. Semua kredensial deployment harus disimpan di GitHub Actions Secrets.

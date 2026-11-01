@@ -1,0 +1,140 @@
+name: Deploy website to cPanel via SSH
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site-source-v2.zip'
+      - 'admin/config.yml'
+      - 'data/**'
+      - 'assets/uploads/**'
+      - '.github/workflows/deploy-cpanel.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cpanel-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build static website
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f site-source-v2.zip || {
+            echo "::error::File site-source-v2.zip belum diunggah ke root repository."
+            exit 1
+          }
+          mkdir -p extracted dist
+          unzip -q site-source-v2.zip -d extracted
+          SOURCE_DIR="extracted/puskesmas-wedung-i-website"
+          test -f "$SOURCE_DIR/index.html" || {
+            echo "::error::Struktur paket ZIP tidak sesuai."
+            exit 1
+          }
+          cp -a "$SOURCE_DIR/." dist/
+          mkdir -p dist/admin dist/data dist/assets/uploads
+          cp admin/config.yml dist/admin/config.yml
+          cp data/content.json dist/data/content.json
+          cp -a assets/uploads/. dist/assets/uploads/ 2>/dev/null || true
+
+          cat > dist/.htaccess <<'HTACCESS'
+          Options -Indexes
+          DirectoryIndex index.html
+          ErrorDocument 404 /404.html
+
+          <IfModule mod_expires.c>
+            ExpiresActive On
+            ExpiresByType text/css "access plus 7 days"
+            ExpiresByType application/javascript "access plus 7 days"
+            ExpiresByType image/webp "access plus 30 days"
+            ExpiresByType image/png "access plus 30 days"
+            ExpiresByType image/jpeg "access plus 30 days"
+            ExpiresByType image/svg+xml "access plus 30 days"
+          </IfModule>
+
+          <IfModule mod_headers.c>
+            Header always set X-Content-Type-Options "nosniff"
+            Header always set Referrer-Policy "strict-origin-when-cross-origin"
+            Header always set X-Frame-Options "SAMEORIGIN"
+            Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+          </IfModule>
+          HTACCESS
+
+          test -f dist/index.html
+          test -f dist/admin/index.html
+          test -f dist/admin/config.yml
+          test -f dist/data/content.json
+
+      - name: Validate required deployment secrets
+        shell: bash
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_PORT: ${{ secrets.CPANEL_PORT }}
+          CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME }}
+          CPANEL_SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
+          CPANEL_KNOWN_HOSTS: ${{ secrets.CPANEL_KNOWN_HOSTS }}
+          CPANEL_TARGET_DIR: ${{ secrets.CPANEL_TARGET_DIR }}
+        run: |
+          set -euo pipefail
+          for name in CPANEL_HOST CPANEL_PORT CPANEL_USERNAME CPANEL_SSH_PRIVATE_KEY CPANEL_KNOWN_HOSTS CPANEL_TARGET_DIR; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error::GitHub Actions Secret $name belum diatur."
+              exit 1
+            fi
+          done
+          if [[ ! "$CPANEL_TARGET_DIR" =~ ^/[A-Za-z0-9_./-]+$ ]] || [[ "$CPANEL_TARGET_DIR" == *".."* ]]; then
+            echo "::error::CPANEL_TARGET_DIR harus berupa path absolut sederhana tanpa '..'."
+            exit 1
+          fi
+          if [[ ! "$CPANEL_PORT" =~ ^[0-9]+$ ]]; then
+            echo "::error::CPANEL_PORT harus berupa nomor port."
+            exit 1
+          fi
+
+      - name: Configure SSH
+        shell: bash
+        env:
+          CPANEL_SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
+          CPANEL_KNOWN_HOSTS: ${{ secrets.CPANEL_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$CPANEL_SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$CPANEL_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null
+
+      - name: Upload website to cPanel
+        shell: bash
+        env:
+          CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+          CPANEL_PORT: ${{ secrets.CPANEL_PORT }}
+          CPANEL_USERNAME: ${{ secrets.CPANEL_USERNAME }}
+          CPANEL_TARGET_DIR: ${{ secrets.CPANEL_TARGET_DIR }}
+        run: |
+          set -euo pipefail
+          ssh -i ~/.ssh/id_ed25519 \
+            -p "$CPANEL_PORT" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            "$CPANEL_USERNAME@$CPANEL_HOST" \
+            "mkdir -p -- '$CPANEL_TARGET_DIR'"
+
+          scp -r -P "$CPANEL_PORT" \
+            -i ~/.ssh/id_ed25519 \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+            dist/. "$CPANEL_USERNAME@$CPANEL_HOST:$CPANEL_TARGET_DIR/"
