@@ -4,7 +4,7 @@ Website profil dan pusat informasi pelayanan kesehatan Puskesmas Wedung I, Kabup
 
 ## Struktur repository
 
-- `site-source-v2.zip` — paket website statis. Unggah paket dari lampiran percakapan ke root repository dengan nama persis ini.
+- `puskesmas-wedung-i-site-source-v2.zip` — paket website statis yang saat ini sudah diunggah ke root repository. Workflow juga menerima nama alternatif `site-source-v2.zip`.
 - `admin/config.yml` — konfigurasi Decap CMS (Decap Turbo + GitHub).
 - `data/content.json` — data publikasi yang dikelola CMS.
 - `assets/uploads/` — media yang diunggah melalui CMS.
@@ -12,7 +12,7 @@ Website profil dan pusat informasi pelayanan kesehatan Puskesmas Wedung I, Kabup
 
 ## Deployment cPanel
 
-Setelah `site-source-v2.zip` diunggah dan GitHub Actions secrets dibuat, setiap perubahan pada paket situs, konfigurasi CMS, data konten, atau upload media di branch `main` akan memicu deployment ke direktori hosting.
+Setelah paket ZIP website tersedia dan GitHub Actions secrets dibuat, setiap perubahan pada paket situs, konfigurasi CMS, data konten, atau upload media di branch `main` akan memicu deployment ke direktori hosting.
 
 Lihat [CPANEL-DEPLOYMENT.md](CPANEL-DEPLOYMENT.md) untuk langkah pengaturan SSH dan daftar secrets.
 
