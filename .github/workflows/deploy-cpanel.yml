@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - 'site-source-v2.zip'
+      - 'puskesmas-wedung-i-site-source-v2.zip'
+      - '.github/workflows/deploy-cpanel.yml'
       - 'admin/config.yml'
       - 'data/**'
       - 'assets/uploads/**'
@@ -30,14 +32,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ ! -f site-source-v2.zip ]]; then
+          PACKAGE=""
+          if [[ -f site-source-v2.zip ]]; then
+            PACKAGE="site-source-v2.zip"
+          elif [[ -f puskesmas-wedung-i-site-source-v2.zip ]]; then
+            PACKAGE="puskesmas-wedung-i-site-source-v2.zip"
+          fi
+          if [[ -z "$PACKAGE" ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "::notice::Paket site-source-v2.zip belum ada; deployment dilewati tanpa gagal."
+            echo "::notice::Paket ZIP website belum ada; deployment dilewati tanpa gagal."
             exit 0
           fi
           echo "skip=false" >> "$GITHUB_OUTPUT"
+          echo "Menggunakan paket: $PACKAGE"
           mkdir -p extracted dist
-          unzip -q site-source-v2.zip -d extracted
+          unzip -q "$PACKAGE" -d extracted
           SOURCE_DIR="extracted/puskesmas-wedung-i-website"
           test -f "$SOURCE_DIR/index.html" || {
             echo "::error::Struktur paket ZIP tidak sesuai."
@@ -77,8 +86,9 @@ jobs:
           test -f dist/admin/config.yml
           test -f dist/data/content.json
 
-      - name: Validate required deployment secrets
-        if: steps.build.outputs.skip != 'true'
+      - name: Check cPanel deployment secrets
+        id: credentials
+        if: steps.build.outputs.skip != 'true' && steps.credentials.outputs.deploy == 'true'
         shell: bash
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
@@ -89,12 +99,15 @@ jobs:
           CPANEL_TARGET_DIR: ${{ secrets.CPANEL_TARGET_DIR }}
         run: |
           set -euo pipefail
+          missing=()
           for name in CPANEL_HOST CPANEL_PORT CPANEL_USERNAME CPANEL_SSH_PRIVATE_KEY CPANEL_KNOWN_HOSTS CPANEL_TARGET_DIR; do
-            if [[ -z "${!name:-}" ]]; then
-              echo "::error::GitHub Actions Secret $name belum diatur."
-              exit 1
-            fi
+            if [[ -z "${!name:-}" ]]; then missing+=("$name"); fi
           done
+          if (( ${#missing[@]} > 0 )); then
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Deployment belum dijalankan. Secrets yang belum diatur: ${missing[*]}"
+            exit 0
+          fi
           if [[ ! "$CPANEL_TARGET_DIR" =~ ^/[A-Za-z0-9_./-]+$ ]] || [[ "$CPANEL_TARGET_DIR" == *".."* ]]; then
             echo "::error::CPANEL_TARGET_DIR harus berupa path absolut sederhana tanpa '..'."
             exit 1
@@ -103,9 +116,10 @@ jobs:
             echo "::error::CPANEL_PORT harus berupa nomor port."
             exit 1
           fi
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
 
       - name: Configure SSH
-        if: steps.build.outputs.skip != 'true'
+        if: steps.build.outputs.skip != 'true' && steps.credentials.outputs.deploy == 'true'
         shell: bash
         env:
           CPANEL_SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
