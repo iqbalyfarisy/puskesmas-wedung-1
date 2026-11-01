@@ -8,7 +8,6 @@ on:
       - 'admin/config.yml'
       - 'data/**'
       - 'assets/uploads/**'
-      - '.github/workflows/deploy-cpanel.yml'
   workflow_dispatch:
 
 permissions:
