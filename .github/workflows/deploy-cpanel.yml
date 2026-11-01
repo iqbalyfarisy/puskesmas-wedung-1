@@ -26,13 +26,16 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Build static website
+        id: build
         shell: bash
         run: |
           set -euo pipefail
-          test -f site-source-v2.zip || {
-            echo "::error::File site-source-v2.zip belum diunggah ke root repository."
-            exit 1
-          }
+          if [[ ! -f site-source-v2.zip ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Paket site-source-v2.zip belum ada; deployment dilewati tanpa gagal."
+            exit 0
+          fi
+          echo "skip=false" >> "$GITHUB_OUTPUT"
           mkdir -p extracted dist
           unzip -q site-source-v2.zip -d extracted
           SOURCE_DIR="extracted/puskesmas-wedung-i-website"
@@ -75,6 +78,7 @@ jobs:
           test -f dist/data/content.json
 
       - name: Validate required deployment secrets
+        if: steps.build.outputs.skip != 'true'
         shell: bash
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
@@ -101,6 +105,7 @@ jobs:
           fi
 
       - name: Configure SSH
+        if: steps.build.outputs.skip != 'true'
         shell: bash
         env:
           CPANEL_SSH_PRIVATE_KEY: ${{ secrets.CPANEL_SSH_PRIVATE_KEY }}
@@ -115,6 +120,7 @@ jobs:
           ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null
 
       - name: Upload website to cPanel
+        if: steps.build.outputs.skip != 'true'
         shell: bash
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
