@@ -6,7 +6,7 @@ Metode: GitHub Actions → SCP melalui SSH → cPanel `public_html`
 
 ## 1. Siapkan file website di repository
 
-Unggah file `site-source-v2.zip` dari paket website versi 2 ke root repository GitHub. Nama file harus persis `site-source-v2.zip`.
+File `puskesmas-wedung-i-site-source-v2.zip` sudah tersedia di root repository. Workflow sekarang menerima nama tersebut maupun nama alternatif `site-source-v2.zip`; tidak perlu mengunggah ulang atau mengganti nama.
 
 Paket ZIP berisi folder `puskesmas-wedung-i-website/` dengan halaman HTML, aset, foto gedung, logo konsep, dan halaman admin.
 
@@ -47,8 +47,8 @@ Jangan memasukkan password cPanel. Jangan menyimpan private key di file reposito
 
 ## 5. Aktifkan deployment
 
-1. Pastikan branch `main` berisi file `site-source-v2.zip`.
-2. Pastikan keenam secrets di atas sudah dibuat.
+1. Pastikan branch `main` berisi `puskesmas-wedung-i-site-source-v2.zip` atau `site-source-v2.zip`.
+2. Buat keenam secrets di atas. Bila belum lengkap, workflow akan melewati langkah deploy tanpa gagal dan dapat dijalankan ulang setelah semuanya tersedia.
 3. Buka tab **Actions** dan jalankan workflow **Deploy website to cPanel via SSH** dengan **Run workflow**, atau lakukan perubahan kecil pada file yang menjadi trigger.
 4. Periksa log workflow. Jika sukses, file website disalin ke document root cPanel.
 5. Buka domain website dan periksa halaman utama, navigasi, aset gambar, /admin/, serta halaman 404.
