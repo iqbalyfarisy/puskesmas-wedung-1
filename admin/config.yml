@@ -31,6 +31,7 @@ collections:
               - { label: "Slug URL", name: "slug", widget: "string" }
               - { label: "Kategori", name: "category", widget: "string" }
               - { label: "Tanggal", name: "date", widget: "datetime", format: "YYYY-MM-DD", date_format: "DD MMMM YYYY", time_format: false }
+              - { label: "Jumlah peserta", name: "participant_count", widget: "number", required: false, value_type: "int", min: 0 }
               - { label: "Ringkasan", name: "summary", widget: "text" }
               - { label: "Isi lengkap", name: "body", widget: "text", required: false }
               - { label: "Foto utama", name: "featured_image", widget: "image", required: false }
