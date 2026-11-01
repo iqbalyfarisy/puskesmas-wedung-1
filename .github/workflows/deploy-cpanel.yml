@@ -88,7 +88,7 @@ jobs:
 
       - name: Check cPanel deployment secrets
         id: credentials
-        if: steps.build.outputs.skip != 'true' && steps.credentials.outputs.deploy == 'true'
+        if: steps.build.outputs.skip != 'true'
         shell: bash
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
@@ -134,7 +134,7 @@ jobs:
           ssh-keygen -y -f ~/.ssh/id_ed25519 >/dev/null
 
       - name: Upload website to cPanel
-        if: steps.build.outputs.skip != 'true'
+        if: steps.build.outputs.skip != 'true' && steps.credentials.outputs.deploy == 'true'
         shell: bash
         env:
           CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
